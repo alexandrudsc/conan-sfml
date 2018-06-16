@@ -11,10 +11,10 @@ class SFMLConan(ConanFile):
     url = "https://github.com/lasote/conan-sfml.git"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
-    default_options = "shared=True"
+    default_options = "shared=False"
     requires = ("libjpeg/9b@bincrafters/stable", "flac/1.3.2@bincrafters/stable",
                 "vorbis/1.3.5@bincrafters/stable", "freetype/2.8.1@bincrafters/stable",
-                "stb/73990fe@conan/testing")
+                "stb/20180214@conan/stable")
     generators = "cmake"
 
     @property
@@ -22,13 +22,15 @@ class SFMLConan(ConanFile):
         return "SFML-%s" % self.version
 
     def system_requirements(self):
-        if tools.os_info.linux_distro == "ubuntu":
+        self.output.info("=================" + tools.os_info.linux_distro)
+        if tools.os_info.linux_distro == "ubuntu" or tools.os_info.linux_distro == "linuxmint":
+            self.output.info("================= UPDATE")
             tools.SystemPackageTool().update()
-            tools.SystemPackageTool().install("libx11-dev libxrandr-dev libglu1-mesa-dev libudev-dev")
+            tools.SystemPackageTool().install("libx11-dev libxrandr-dev libglu1-mesa-dev libudev-dev xorg-dev")
 
     def requirements(self):
         if self.settings.os == "Linux":
-            self.requires("openal/1.18.2@conan/testing")
+            self.requires("openal/1.18.2@bincrafters/stable")
         elif self.settings.os == "Macos":
             self.requires("libjpeg/9b@bincrafters/stable")
             self.requires("flac/1.3.2@bincrafters/stable")
@@ -65,9 +67,12 @@ conan_basic_setup()
         cmake = CMake(self)
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["SFML_USE_STATIC_STD_LIBS"] = "ON" if "MD" not in str(self.settings.compiler.runtime) else "OFF"
+        cmake.definitions["CMAKE_POSITION_INDEPENDENT_CODE"] = "ON"
         cmake.definitions["BUILD_SHARED_LIBS"] = "ON" if self.options.shared else "OFF"
         cmake.definitions["SFML_BUILD_EXAMPLES"] = "OFF"
         cmake.definitions["SFML_BUILD_DOC"] = "OFF"
+        cmake.verbose = True
+        cmake.parallel = True
         cmake.configure(source_folder=os.path.join(self.source_folder, self.folder_name))
         cmake.build()
 
@@ -88,6 +93,13 @@ conan_basic_setup()
     def package_info(self):
         libs = tools.collect_libs(self)
         self.cpp_info.libs = libs
+        if tools.os_info.linux_distro == "ubuntu" or tools.os_info.linux_distro == "linuxmint":
+            self.cpp_info.libs.append("udev")
+            self.cpp_info.libs.append("GL")
+            self.cpp_info.libs.append("GLU")
+            self.cpp_info.libs.append("Xrandr")
+            self.cpp_info.libs.append("X11")
+            self.cpp_info.libs.append("-ludev -lGL -lGLU -lXrandr -lX11")
         if tools.os_info.is_macos:
             self.cpp_info.exelinkflags.append("-framework Cocoa")
             self.cpp_info.exelinkflags.append("-framework OpenGL")
