@@ -26,7 +26,7 @@ class SFMLConan(ConanFile):
         if tools.os_info.linux_distro == "ubuntu" or tools.os_info.linux_distro == "linuxmint":
             self.output.info("================= UPDATE")
             tools.SystemPackageTool().update()
-            tools.SystemPackageTool().install("libx11-dev libxrandr-dev libglu1-mesa-dev libudev-dev xorg-dev")
+            tools.SystemPackageTool().install("libx11-dev libxrandr-dev libglu1-mesa-dev libudev-dev xorg-dev libtool automake")
 
     def requirements(self):
         if self.settings.os == "Linux":
@@ -69,6 +69,8 @@ conan_basic_setup()
             cmake.definitions["SFML_USE_STATIC_STD_LIBS"] = "ON" if "MD" not in str(self.settings.compiler.runtime) else "OFF"
         cmake.definitions["CMAKE_POSITION_INDEPENDENT_CODE"] = "ON"
         cmake.definitions["BUILD_SHARED_LIBS"] = "ON" if self.options.shared else "OFF"
+        if self.options.shared == False:
+            cmake.definitions["SFML_STATIC_LIBRARIES"] = "ON"
         cmake.definitions["SFML_BUILD_EXAMPLES"] = "OFF"
         cmake.definitions["SFML_BUILD_DOC"] = "OFF"
         cmake.verbose = True
