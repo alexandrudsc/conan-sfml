@@ -95,6 +95,19 @@ conan_basic_setup()
     def package_info(self):
         libs = tools.collect_libs(self)
         self.cpp_info.libs = libs
+        if self.options.shared == False:
+            self.cpp_info.libs.remove("sfml-audio-s")
+            self.cpp_info.libs.remove("sfml-graphics-s")
+            self.cpp_info.libs.remove("sfml-window-s")
+            self.cpp_info.libs.remove("sfml-network-s")
+            self.cpp_info.libs.remove("sfml-system-s")
+
+            self.cpp_info.libs.insert(0, "sfml-audio-s")
+            self.cpp_info.libs.insert(1, "sfml-graphics-s")
+            self.cpp_info.libs.insert(2, "sfml-window-s")
+            self.cpp_info.libs.insert(3, "sfml-network-s")
+            self.cpp_info.libs.insert(4, "sfml-system-s")
+
         if tools.os_info.linux_distro == "ubuntu" or tools.os_info.linux_distro == "linuxmint":
             self.cpp_info.libs.append("udev")
             self.cpp_info.libs.append("GL")
@@ -108,3 +121,4 @@ conan_basic_setup()
             self.cpp_info.exelinkflags.append("-framework OpenAL")
             self.cpp_info.exelinkflags.append("-framework IOKit")
             self.cpp_info.exelinkflags.append("-framework Carbon")
+        
